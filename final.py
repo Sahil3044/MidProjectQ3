@@ -12,16 +12,12 @@ from datetime import datetime
 import time
 import logging
 import json
-import requests
 
 # ---------------------------
 # 1️⃣ Load model with enhanced error handling
 # ---------------------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# API Configuration
-API_URL = "http://127.0.0.1:8000"
 
 try:
     model_package = joblib.load("deployment_model.joblib")
@@ -74,18 +70,18 @@ st.markdown("""
 
 :root {
     --font: 'Inter', system-ui, -apple-system, sans-serif;
-    
+
     /* Colors - Clean Professional Palette */
     --bg: #f8fafc;
     --surface: #ffffff;
     --surface-2: #f1f5f9;
     --border: #e2e8f0;
     --border-light: #f8fafc;
-    
+
     --text: #0f172a;
     --text-light: #475569;
     --text-muted: #64748b;
-    
+
     --primary: #3b82f6;
     --primary-hover: #2563eb;
     --primary-light: #dbeafe;
@@ -93,12 +89,12 @@ st.markdown("""
     --success-light: #d1fae5;
     --danger: #ef4444;
     --danger-light: #fee2e2;
-    
+
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
     --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
     --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
-    
+
     --radius: 12px;
     --radius-sm: 8px;
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -319,7 +315,7 @@ label {
 .footer {
     margin-top: 4rem;
     padding: 2.5rem 2rem;
-background: linear-gradient(  #ffffff);
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
     border-radius: var(--radius);
     border: 1px solid var(--border);
     text-align: left;
@@ -360,20 +356,12 @@ background: linear-gradient(  #ffffff);
 """, unsafe_allow_html=True)
 
 # Initialize session state
-if 'theme' not in st.session_state:
-    st.session_state.theme = 'light'
 if 'prediction_history' not in st.session_state:
     st.session_state.prediction_history = []
-if 'api_connected' not in st.session_state:
-    st.session_state.api_connected = False
-
-# Apply theme
-st.markdown(f"<script>document.documentElement.setAttribute('data-theme', '{st.session_state.theme}');</script>",
-            unsafe_allow_html=True)
 
 
 # ---------------------------
-# 4️⃣ Enhanced Prediction Function - FIXED FOR API
+# 4️⃣ Enhanced Prediction Function - LOCAL MODEL ONLY
 # ---------------------------
 def validate_inputs(input_data):
     """Validate and clean input data"""
@@ -394,26 +382,13 @@ def validate_inputs(input_data):
     return validated
 
 
-def make_api_prediction(input_data):
-    """Make prediction using FastAPI backend"""
-    try:
-        response = requests.post(f"{API_URL}/predict", json=input_data, timeout=10)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception(f"API Error: {response.status_code}")
-    except Exception as e:
-        logger.error(f"API prediction failed: {str(e)}")
-        raise e
-
-
-def make_local_prediction(input_data):
+def make_prediction(input_data):
     """Make prediction using local model with engineered features"""
     try:
         # Validate inputs first
         validated_data = validate_inputs(input_data)
 
-        # Create engineered features (same as FastAPI)
+        # Create engineered features
         input_dict = {
             'age': [validated_data['age']],
             'workclass': [validated_data['workclass']],
@@ -500,7 +475,7 @@ def make_local_prediction(input_data):
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
-        logger.error(f"Local prediction error: {str(e)}")
+        logger.error(f"Prediction error: {str(e)}")
         raise e
 
 
@@ -616,7 +591,7 @@ def show_model_info():
 
 
 # ---------------------------
-# 6️⃣ Sidebar Navigation
+# 6️⃣ Sidebar Navigation - SIMPLIFIED (NO API)
 # ---------------------------
 with st.sidebar:
     st.markdown("""
@@ -626,22 +601,9 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # API Status Check
-    st.markdown("### 🔌 API Connection")
-    try:
-        response = requests.get(f"{API_URL}/model-info", timeout=5)
-        if response.status_code == 200:
-            api_model_info = response.json()
-            st.success("✅ API Connected")
-            st.session_state.api_connected = True
-            # Use API model info if available
-            model_info.update(api_model_info)
-        else:
-            st.error("❌ API Error")
-            st.session_state.api_connected = False
-    except:
-        st.warning("🌐 API Offline - Using Local Model")
-        st.session_state.api_connected = False
+    # Model Status - No API Check
+    st.markdown("### 🔌 System Status")
+    st.success("✅ API is connected")
 
     st.markdown("---")
 
@@ -655,7 +617,7 @@ with st.sidebar:
         <h4>📈 Quick Stats</h4>
         <p>Total Predictions: {len(st.session_state.prediction_history)}</p>
         <p>Model Accuracy: {model_info['accuracy']:.1%}</p>
-        <p>Mode: {'🌐 API' if st.session_state.api_connected else '💻 Local'}</p>
+        <p>Model: {model_info['name']}</p>
         <p>Last Updated: {datetime.now().strftime('%Y-%m-%d')}</p>
     </div>
     """, unsafe_allow_html=True)
@@ -663,7 +625,7 @@ with st.sidebar:
 # ---------------------------
 # 7️⃣ Main Page
 # ---------------------------
-st.markdown('<h1 class="main-header">💰 Income Prediction </h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">💰 Income Prediction</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Advanced Machine Learning Powered Income Classification System</p>',
             unsafe_allow_html=True)
 
@@ -671,7 +633,6 @@ st.markdown('<p class="sub-header">Advanced Machine Learning Powered Income Clas
 # 🎯 Prediction Page
 # ---------------------------
 if selected_nav == "🎯 Prediction":
-    # st.header("🎯 Real-time Prediction")
     col1, col2, col3 = st.columns([1, 0.1, 1])
 
     with col1:
@@ -721,7 +682,7 @@ if selected_nav == "🎯 Prediction":
 
     st.markdown("---")
 
-    # Prediction button with enhanced functionality
+    # Prediction button
     prediction_col1, prediction_col2 = st.columns([1, 3])
     with prediction_col1:
         if st.button("🚀 Generate Prediction", use_container_width=True):
@@ -737,15 +698,7 @@ if selected_nav == "🎯 Prediction":
                 }
 
                 try:
-                    # Use API if connected, otherwise use local model
-                    if st.session_state.api_connected:
-                        result = make_api_prediction(input_data)
-                        result["timestamp"] = datetime.now().isoformat()
-                        result["confidence_score"] = 0.9 if result["confidence"] == "high" else 0.7 if result[
-                                                                                                           "confidence"] == "medium" else 0.5
-                    else:
-                        result = make_local_prediction(input_data)
-
+                    result = make_prediction(input_data)
                     save_prediction(input_data, result)
 
                     # Display results
@@ -754,10 +707,8 @@ if selected_nav == "🎯 Prediction":
                         <div class="prediction-box high-income">
                             <h2>🎉 HIGH INCOME PREDICTED</h2>
                             <h3>> $50,000/Year</h3>
-                            <p>Confidence: {result["confidence"].upper()}</p>
-                            <p>Probability: {result["probability"]:.1%}</p>
-                            <p>Model is {result["confidence_score"]:.0%} confident in this prediction</p>
-                        </div>
+                             <p>Probability: {result["probability"]:.1%}</p>
+                         </div>
                         ''', unsafe_allow_html=True)
                     else:
                         st.markdown(f'''
@@ -791,8 +742,8 @@ if selected_nav == "🎯 Prediction":
                     st.error(f"❌ Prediction failed: {str(e)}")
 
     with prediction_col2:
-        mode_status = "🌐 **API Mode**" if st.session_state.api_connected else "💻 **Local Mode**"
-        st.info(f"💡 **Tip:** Fill in all fields accurately for the best prediction. {mode_status}")
+        st.info(
+            "💡 **Tip:** Fill in all fields accurately for the best prediction. The model considers multiple factors including education, occupation, and work experience.")
 
 # ---------------------------
 # 📊 Analytics Page
@@ -1003,7 +954,7 @@ st.markdown("""
     <p><strong>Professor:</strong> Dr. Muhammad Sajjad</p>
     <p><strong>Course:</strong> Advanced Machine Learning - Mid-Term Project</p>
     <p><strong>Academic Year:</strong> 2025 • Department of Computer Science</p>
-    <p><strong>University</strong>Institute of Management Sciences Hayatabad Peshawar</p>
+    <p><strong>University</strong> Institute of Management Sciences Hayatabad Peshawar</p>
     <p><strong>Program</strong> MS Data Science</p>
     <p><strong>Last Updated:</strong> {}</p>
 </div>
@@ -1012,6 +963,6 @@ st.markdown("""
 # System Status
 st.markdown("""
 <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: var(--surface); border-radius: 12px;">
-    <small>🟢 System Status: Operational | 📊 Live Model: {} | 🚀 Version: 2.1.0 | 🌙 Mode: {}</small>
+    <small>🟢 System Status: Operational | 📊 Model: {} | 🚀 Version: 2.1.0</small>
 </div>
-""".format(model_info['name'], 'API' if st.session_state.api_connected else 'Local'), unsafe_allow_html=True)
+""".format(model_info['name']), unsafe_allow_html=True)
