@@ -998,11 +998,13 @@ elif selected_nav == "📈 History":
 st.markdown("---")
 st.markdown("""
 <div class="footer">
-    <h3>🎓 Advanced Machine Learning - Professional Dashboard</h3>
+    <h3>🎓 Advanced Machine Learning</h3>
     <p><strong>Student:</strong> Khairullah Ibrahim Khail</p>
     <p><strong>Professor:</strong> Dr. Muhammad Sajjad</p>
     <p><strong>Course:</strong> Advanced Machine Learning - Mid-Term Project</p>
-    <p><strong>Academic Year:</strong> 2024 • Department of Computer Science</p>
+    <p><strong>Academic Year:</strong> 2025 • Department of Computer Science</p>
+    <p><strong>University</strong>Institute of Management Sciences Hayatabad Peshawar</p>
+    <p><strong>Program</strong> MS Data Science</p>
     <p><strong>Last Updated:</strong> {}</p>
 </div>
 """.format(datetime.now().strftime('%B %d, %Y at %H:%M')), unsafe_allow_html=True)
