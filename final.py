@@ -58,30 +58,32 @@ st.markdown("""
 /*  For Streamlit Income Prediction App          */
 /* ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* DISABLE STREAMLIT THEME SETTINGS */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
 
-*,
-*::before,
-*::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* FORCE LIGHT THEME */
+.stApp {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
 }
 
+/* Override any dark theme variables */
 :root {
     --font: 'Inter', system-ui, -apple-system, sans-serif;
-
+    
     /* Colors - Clean Professional Palette */
     --bg: #f8fafc;
     --surface: #ffffff;
     --surface-2: #f1f5f9;
     --border: #e2e8f0;
     --border-light: #f8fafc;
-
+    
     --text: #0f172a;
     --text-light: #475569;
     --text-muted: #64748b;
-
+    
     --primary: #3b82f6;
     --primary-hover: #2563eb;
     --primary-light: #dbeafe;
@@ -89,23 +91,21 @@ st.markdown("""
     --success-light: #d1fae5;
     --danger: #ef4444;
     --danger-light: #fee2e2;
-
+    
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
     --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
     --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
-
+    
     --radius: 12px;
     --radius-sm: 8px;
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html, body, .stApp {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    min-height: 100vh;
+/* Force light background on all elements */
+html, body, .stApp, [data-testid="stAppViewContainer"] {
+    background: var(--bg) !important;
+    color: var(--text) !important;
 }
 
 /* Main Container */
